@@ -1,0 +1,38 @@
+allprojects {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs.addAll([
+                '-Xlint:preview',
+                '-Xlint:unchecked',
+                '-Xlint:deprecation'
+        ])
+    }
+}
+
+configure([
+        project (':playground-app'),
+]) {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    configurations {
+        testImplementation {
+            exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport
+    }
+
+    jacocoTestReport {
+        afterEvaluate {
+            getClassDirectories() from classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                        '**/domain/**',
+                        '**/config/**',
+                ])
+            }
+        }
+    }
+}
